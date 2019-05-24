@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using MicroBatchFramework;
-using Microsoft.Extensions.Logging;
 
 namespace Compilementor {
     class Program {
@@ -14,19 +15,27 @@ namespace Compilementor {
     }
 
     public class Mentor : BatchBase {
-        public void MyBuild () {
-            var proc = Process.Start (new ProcessStartInfo { FileName = "dotnet", Arguments = "build", RedirectStandardOutput = true });
-            proc.WaitForExit ();
-            var errorAll = proc.StandardOutput.ReadToEnd ();
-            proc.Close ();
-            var errorLine = errorAll.Split ('\n').TakeLast (4).First ();
-            var errorNum = int.Parse (errorLine.Trim () [0].ToString ());
-            Console.WriteLine (errorAll);
-            if (errorNum == 0) {
-                Console.WriteLine ("おめでとーーーー！！！！！！！！");
+        public void MentorBuild () {
+            var dotnetBuildProc = Process.Start (new ProcessStartInfo { FileName = "dotnet", Arguments = "build", RedirectStandardOutput = true, RedirectStandardError = true });
+            dotnetBuildProc.WaitForExit ();
+            var buildResult = dotnetBuildProc.StandardOutput.ReadToEnd ();
+            var buildErrorLine = buildResult.Split ('\n').TakeLast (4).First ();
+            var buildErrorNum = int.Parse (buildErrorLine.Trim () [0].ToString ());
+
+            var mentorColor = ConsoleColor.White;
+            var mentorSay = "";
+            if (buildErrorNum == 0) {
+                mentorColor = ConsoleColor.Green;
+                mentorSay = "ビルド成功 おめでとーーーーー！！！！！";
             } else {
-                Console.WriteLine ("残念．．．．．．");
+                mentorColor = ConsoleColor.Cyan;
+                mentorSay = "ビルド失敗 また頑張ろう．．．．．．";
             }
+
+            Console.WriteLine (buildResult);
+            Console.ForegroundColor = mentorColor;
+            Console.WriteLine (mentorSay);
+            Console.ForegroundColor = ConsoleColor.Gray;
         }
     }
 }
